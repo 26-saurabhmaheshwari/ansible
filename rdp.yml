@@ -1,0 +1,54 @@
+---
+- hosts: localhost
+  sudo: yes
+  vars:
+    http_port: 8081
+    domain: coquelicot
+    proxy: 'http://127.0.0.1'
+    proxy_port: 51161
+
+  tasks:
+    - name: install apache2
+      apt: name=apache2 update_cache=yes state=latest
+
+    - name: install coquelicot dependency packages
+      apt: name={{item}} state=present
+      with_items:
+              - rubygems
+              - ruby-dev
+              - libxml2-dev
+              - libxslt-dev
+          
+    - name: Install gems
+      gem: name={{item}} state=present
+      with_items:
+        - bundler
+        - bcrypt 
+      
+    - name: install coquelicot
+      apt: name=coquelicot update_cache=yes state=latest
+        
+    - name: enable proxy and proxy_http
+      shell: a2enmod proxy && a2enmod proxy_http
+
+    - name: enabled mod_rewrite
+      apache2_module: name=rewrite state=present
+      notify:
+        - restart apache2
+
+    - name: apache2 listen on port {{ http_port }}
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 8081" state=present
+      notify:
+        - restart apache2
+
+    - name: create virtual host file
+      template: src=virtualhost.conf dest=/etc/apache2/sites-available/{{ domain }}.conf
+
+    - name: a2ensite {{ domain }}
+      shell: a2dissite 000-default.conf && a2ensite {{ domain }}.conf
+      notify:
+        - restart apache2
+
+  handlers:
+    - name: restart apache2
+      service: name=apache2 state=restarted
