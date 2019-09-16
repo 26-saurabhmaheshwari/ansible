@@ -26,17 +26,16 @@
       apache2_module: name=rewrite state=present
       notify:
         - restart apache2
-
+        
     - name: apache2 listen on port {{ http_port }}
       lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 8081" state=present
       notify:
         - restart apache2
 
-    - name: create virtual host file
-      template: src=virtualhost.conf dest=/etc/apache2/sites-available/{{ domain }}.conf
-
-    - name: a2ensite {{ domain }}
-      shell: a2dissite 000-default.conf && a2ensite {{ domain }}.conf
-      notify:
-        - restart apache2
-
+    - name: Add apache vhosts configuration.
+      template:
+        src: virtualhost.conf.j2
+        dest: /etc/apache2/sites-available/000-default.conf
+        owner: root
+        group: root
+        mode: 0644

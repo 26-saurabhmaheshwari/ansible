@@ -3,5 +3,6 @@ http_port: 8081
 domain: coquelicot
 proxy: 'http://127.0.0.1'
 proxy_port: 51161
+ansible_sudo_pass: snap123
 
 
