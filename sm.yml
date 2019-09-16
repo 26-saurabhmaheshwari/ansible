@@ -41,13 +41,13 @@
       notify:
         - restart apache2
 
-    - name: create virtual host file
-      template: src=virtualhost.conf dest=/etc/apache2/sites-available/{{ domain }}.conf
-
-    - name: a2ensite {{ domain }}
-      shell: a2dissite 000-default.conf && a2ensite {{ domain }}.conf
-      notify:
-        - restart apache2
+    - name: Add apache vhosts configuration.
+      template:
+        src: virtualhost.conf
+        dest: /etc/apache2/sites-available/000-default.conf
+        owner: root
+        group: root
+        mode: 0644
 
   handlers:
     - name: restart apache2
